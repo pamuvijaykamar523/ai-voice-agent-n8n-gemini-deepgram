@@ -1,0 +1,188 @@
+{
+  "name": "VOICE AGENT",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "84a1a3bb-bd59-4461-91e8-6cb7297f8fcc",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        160,
+        -16
+      ],
+      "id": "cb38c2a9-fb33-47cb-b7e6-4608bf9064df",
+      "name": "Webhook",
+      "webhookId": "84a1a3bb-bd59-4461-91e8-6cb7297f8fcc"
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1072,
+        -144
+      ],
+      "id": "e6dd5cf4-47da-4ac5-a3c8-b626d80c83a1",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a friendly AI Voice Assistant.\n\nRules:\n- Reply naturally as if speaking.\n- Keep answers under 40 words.\n- Avoid long paragraphs.\n- Use simple English.\n- Answer directly.\n- If you don't know the answer, say \"I'm not sure.\"\n\nUser\n{{ $json.body.message }}\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        -16
+      ],
+      "id": "f8c4ad71-38ba-40a0-a5e0-bd1c0142b4cb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        192
+      ],
+      "id": "32d2a852-9ce0-40da-9a44-99679346294e",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0CX2yITUedUV1T0W",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.headers['user-agent'] }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        384,
+        192
+      ],
+      "id": "0ec717c8-822e-412e-a393-fcaf0358d6ce",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepgram.com/v1/speak?model=aura-2-thalia-en",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Token 83844c685e5c4473209489a4bba5ac89a7f1bdea"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": {{ JSON.stringify($json.output) }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        720,
+        -16
+      ],
+      "id": "e63e1c41-a493-456e-83f0-882a37ae64f3",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ddbcf997-14e8-4c4a-af62-65151f7f71f1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8c5d0a6f358cd30bff57ba17675219e1956d31b74b70dab7897ede4ed70f45dd"
+  },
+  "nodeGroups": [],
+  "id": "bq9iWJucHHStjOKN",
+  "tags": []
+}
